@@ -146,26 +146,55 @@ Does your answer:
 - return the correct quantile values? 
 
 :::
-
+#### Part a)
 ```{r}
-qgpd <- function(p, u, sigma, xi){
+#' Quantile function for the Generalized Pareto Distribution
+#'
+#' @param p probability to return quantile for
+#' @param u location parameter for generalized pareto distribution
+#' @param sigma scale parameter for generalized Pareto distribution
+#' @param xi shape parameter for generalized Pareto distribution
+#'
+#' @returns quantile corresponding to proabability p as determined by
+#' the pareto distribution defined by u, sigma, and xi. If input is invalid
+#' returns NaN.
+#' @export
+#'
+#' @examples
+qgpd <- function(p, u, sigma, xi) {
   # Input validation
-  if (!is.numeric(p) || !is.numeric(u) || !is.numeric(sigma) || !is.numeric(xi)){
+  if (!is.numeric(p) ||
+      !is.numeric(u) || !is.numeric(sigma) || !is.numeric(xi)) {
     print("qgpd expects numeric values for all its inputs!")
     return(NaN)
   }
-  if (sigma <= 0){
+  if (p < 0 || p > 1) {
+    print("Probability passed to qgpd must be in [0,1]!")
+    return(NaN)
+  }
+  if (sigma <= 0) {
     print("sigma must be greater than zero!")
     return(NaN)
   }
   
-  if (xi == 0){
-    x <- u - sigma * (log(1-p))
+  if (xi == 0) {
+    x <- u - sigma * (log(1 - p))
   }
   else{
-    x <- u + (sigma * ((1-p)^(-xi) - 1))/xi
+    x <- u + (sigma * ((1 - p)^(-xi) - 1)) / xi
   }
   return(x)
+}
+```
+
+
+#### Part b)
+```{r}
+u <- 1.5
+sigma <- 2
+xi <- -0.4
+for (p in c(0.5, 0.75, 0.99)){
+  print(sprintf("For p=%f, x=%f", p, qgpd(p, u, sigma, xi)))
 }
 ```
 

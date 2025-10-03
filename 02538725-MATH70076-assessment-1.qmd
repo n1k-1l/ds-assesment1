@@ -1,0 +1,246 @@
+---
+title: "MATH70076: Data Science - Coursework 1"
+subtitle: 'MSc in Statistics 2025/26, Imperial College London'
+author: "02538725"
+format:
+  html:
+    toc: true
+    highlight: tango
+    self-contained: true
+  pdf: default
+format-links: false
+bibliography: example.bib 
+---
+
+**Deadline:  Friday 10 October 2025 at 13:00.**
+
+_For this assessment you should submit two files via the Imperial College VLE on Blackboard by the deadline stated above. Your files should be named as follows:_
+
+- `YOURCID-MATH70076-assessment-1.pdf`: your rendered report,
+- `YOURCID-MATH70076-assessment-1.zip`: a zip file containing the relevant source code to generate your report.
+
+_All submitted materials should be clearly presented and be understandable as stand-alone documents._
+
+_Please note that large files can take quite some time to upload. Ensure that you upload each document to the correct part of the learning space in a timely manner._
+
+_This coursework is expected to take approximately 5 hours of individual effort and will be marked as Pass/Fail. Assessment criteria are given in the "set yourself up for success" boxes. Satisfying 15 or more out of these 20 criteria will constitute a pass grade._
+
+_In submitting this assessment you certify that it is entirely your own work, apart from where otherwise acknowledged, and includes no plagiarism. Note that software tools are used as part of plagiarism detection._
+
+-----
+
+## Background 
+
+### Generalised Pareto Distribution 
+
+The Generalized Pareto Distribution (GPD) is a flexible family of continuous probability distributions that arises naturally in extreme value theory, particularly for modelling the distribution of excesses over a threshold. It is parametrised by a shape parameter $\xi \in \mathbb{R}$, a scale parameter $\sigma > 0$, and a location parameter $u \in \mathbb{R}$. Its cumulative distribution function (CDF) is given by
+
+$$
+F(x;\,\sigma,\xi, u) = 
+\begin{cases}
+1 - \left(1 + \dfrac{\xi (x-u)}{\sigma}\right)_+^{-1/\xi}, & \xi \neq 0, \, x \geq u; \; \\[1.2em]
+1 - \exp\!\left(-\dfrac{x-u}{\sigma}\right), & \xi = 0, \, x \geq u;
+\end{cases}
+$$ {#eq-gpd-cdf}
+
+where $x_+ = \max(x,0)$ and its probability density function (PDF) is
+
+$$
+f(x;\sigma,\xi,u) =
+\begin{cases}
+\dfrac{1}{\sigma}\left(1 + \dfrac{\xi (x-u)}{\sigma}\right)_+^{-1/\xi - 1}, & \xi \neq 0, \\[1.2em]
+\dfrac{1}{\sigma}\exp\!\left(-\dfrac{x-u}{\sigma}\right), & \xi = 0,
+\end{cases}
+$$ {#eq-gpd-pdf}
+
+
+defined on the same support as the CDF. The GPD encompasses a variety of tail behaviours:
+
+- when $\xi > 0$ the GPD has heavy, slowly decaying tails, 
+- in limiting case when $\xi \rightarrow 0$ the GPD reduces to an exponential distribution;
+- when $\xi < 0$ the GPD has light, quickly decaying tails with a finite upper endpoint of $x^+ = u - \sigma / \xi$. 
+
+### Probability Integral Transform
+
+The probability integral transform states that if a random variable $X$ has a continuous cumulative distribution function $F_X(x)$, then the transformed variable $A = F_X(X)$ follows a uniform distribution on $[0,1]$. Conversely, if $F$ is an invertible function then $Y = F^{-1}_X(A)$ has the same distribution as $X$.
+
+## Questions 
+
+###  Question 1 
+
+Derive an expression for the inverse cumulative distribution function (also known as the quantile function) $F^{-1}_X: [0,1] \rightarrow [u, x^+]$ of $X \sim \text{GPD}(u, \sigma, \xi)$. Your answer should refer to at least one equation given in the background material. 
+
+::: {.callout-tip}
+## Set yourself up for success
+
+Does your answer contain:
+
+- a few sentences of text describing your approach to the problem; 
+- a reference to at least one equation from the background section;
+- a correctly formatted LaTeX equation;
+- a valid approach to the problem and correct expression.
+:::
+
+##### Case $\xi = 0$
+First we handle the case where $\xi = 0$. Let $y = 1 - \exp(-\frac{x-u}{\sigma})$ (the $\xi =0$ case from @eq-gpd-cdf).
+$$
+  \begin{align}
+    y &= 1 - \exp(-\frac{x-u}{\sigma})\\
+    - \frac{x-u}{\sigma} &= \ln(1-y)\\
+    x &= u - \sigma \ln (1-y)
+  \end{align}
+$$
+for $y \in [0,1]$
+
+##### Case $\xi \neq 0$
+In this case, we invert the definition of the CDF (@eq-gpd-cdf) when $\xi \neq 0$:
+$$
+\begin{align}
+  y &= 1 - \left(1 + \dfrac{\xi (x-u)}{\sigma}\right)^{-1/\xi} \\
+  (1 - y)^{-\xi} &= 1 + \frac{\xi(x-u)}{\sigma} \\
+  x &= u + \xi^{-1}\sigma((1-y)^{-\xi} - 1)
+\end{align}
+$$
+for $y \in [0,1]$.
+
+We can also show that the bounds of $x$ is respected in the case where $\xi < 0$. 
+As $y  \rightarrow 1$, $(1 - y)^{-\xi}  \rightarrow 0$ which implies that $x  \rightarrow u - \frac{\sigma}{\xi}$.
+It should also be noted that as $y \rightarrow 0$, in both cases where $\xi < 0$ and $\xi >0$ 
+that $x  \rightarrow u$. Therefore our inverse respects the support of $[u, x^+]$.
+
+#### Inverse CDF
+We can now define the final inverse CDF as:
+
+$$
+F^{-1}_X(y;\,\sigma,\xi, u) = 
+\begin{cases}
+u + \frac{\sigma((1-y)^{-\xi} - 1)}{\xi}, & \xi \neq 0 \\
+u - \sigma \ln (1-y), & \xi = 0
+\end{cases}
+$$ {#eq-gpd-inv-cdf}
+for $y \in [0,1]$.
+
+
+
+
+
+
+### Question 2 
+
+_For this question you should display the R code you use to define and document `qgpd()` within the main text of your report._
+
+(a) Write and document your own function `qgpd()` to calculate quantiles of a given generalised Pareto distribution. Your function should have inputs and behaviour similar to the built-in R functions such as `qnorm()` and `qunif()` and check that inputs are in the correct format. 
+
+(b) Suppose a random variable $X$ follows an generalised Pareto distribution with threshold parameter $u=1.5$, scale parameter $\sigma = 2$ and shape parameter $\xi = -0.4$. Use your function to find quantiles $x_p$ for $p = 0.5, 0.75, 0.99$ (i.e. for each $p$ find the value for which $\Pr(X < x_p) = p$).
+
+
+:::{.callout-tip}
+## Set yourself up for success
+
+Does your answer: 
+
+- contain a valid R function definition;
+- document the expected inputs, outputs and behaviours of that function;
+- check the validity of inputs;
+- handle any edge-cases in an appropriate way;
+- return the correct quantile values? 
+
+:::
+
+```{r}
+qgpd <- function(p, u, sigma, xi){
+  # Input validation
+  if (!is.numeric(p) || !is.numeric(u) || !is.numeric(sigma) || !is.numeric(xi)){
+    print("qgpd expects numeric values for all its inputs!")
+    return(NaN)
+  }
+  if (sigma <= 0){
+    print("sigma must be greater than zero!")
+    return(NaN)
+  }
+  
+  if (xi == 0){
+    x <- u - sigma * (log(1-p))
+  }
+  else{
+    x <- u + (sigma * ((1-p)^(-xi) - 1))/xi
+  }
+  return(x)
+}
+```
+
+### Question 3
+
+_For this question, all R code should be displayed only within the appendix, not in the main report._
+
+The file `gpd_samples.csv` contains six sets of random variates generated from different generalised Pareto distributions. The details of the generalised Pareto distributions used are summarised in `gpd_parameters.csv`. Unfortunately some of the parameter sets were recorded incorrectly. 
+
+Within a single figure, construct a series of quantile-quantile plots to identify which datasets are inconsistent with their stated distributions. You should both justify your conclusions and describe your level of confidence in your findings. 
+
+::: {.callout-tip}
+## Set yourself up for success 
+
+Does your solution contain: 
+
+- at least one quantile-quantile plot;
+- six qq-plots in a single figure;
+- use of loops, vectorisation, or function definitions to avoid repetitive code.
+- figures with clear text, useful captions and appropriate visual mapping of data;
+- a few paragraphs describing and justifying your findings and referencing the figure;
+
+:::
+
+<!-- YOUR ANSWER GOES HERE --> 
+
+
+### Question 4
+
+_For this question, all R code should be displayed only within the appendix, not in the main report._
+
+A hydrologist is interested in understanding the river flow at a location that is historically prone to flooding. There is a river flow gauge nearby which measures river flow in units of cubic meters per second ($\text{m}^3/\text{s}$ or cumecs). Based on her knowledge of other rivers, the hydrologist proposes that for this river gauge:
+
+ - the distribution of river flow values is constant over time 
+ - for river flows exceeding 75 cumecs, it is appropriate to model these data as independent and identically distributed GPD($\sigma =29.7$, $\xi=0.62$, $u = 0$). 
+
+Use `riverflow_2015-2024.csv` to conduct an exploratory investigation of whether these proposals are valid for the dataset provided. Summarise your findings in 250-350 words, supporting these with a collection of 4 visualisations/figures. 
+
+
+::: {.callout-tip}
+## Set yourself up for success 
+
+Does your answer contain: 
+
+- 400-500 words of text clearly describing your choice of visualisations, their interpretation and your conclusions about the validity of each assumption,
+- A series of 4 visualisations / figures,
+- A varied and appropriate choice of figures to investigate each of the hydrologist's proposals,
+- Figures with clear text, useful captions and appropriate visual mapping of data;
+- At least one reference to each visualisation within the main text.
+:::
+
+
+<!-- YOUR INVESTIGATION GOES HERE --> 
+
+
+
+::: {.callout-tip}
+## Set yourself up for success 
+
+- Does your document render without any formatting issues? 
+:::
+
+_End of Assessment._
+
+
+# Code Appendix {#sec-code-appendix}
+
+```{r ref.label=knitr::all_labels()}
+#| echo: true
+#| eval: false
+#| code-fold: true
+```
+
+
+
+
+
+

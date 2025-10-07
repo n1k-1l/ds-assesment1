@@ -9,7 +9,7 @@ format:
     self-contained: true
   pdf: default
 format-links: false
-bibliography: example.bib 
+bibliography: ds-assessment1-ref.bib
 ---
 
 **Deadline:  Friday 10 October 2025 at 13:00.**
@@ -259,16 +259,21 @@ for (id in ids){
   build_qq_plot(id)
 }
 ```
-##### Distribution a
-The quantile-quantile plot for distribution a shows a clear deviation from the 
-y=x line, with the data initially being under, then over the line. This suggests
-the parameters that generated the data deviate from the listed _sim parameters.
+##### Distribution b and f
+The Quantile-Quantile plots of distributions b) and f) in @fig-gpd-qqplots suggest 
+the parameters provided for these distributions are correct with the highest level of confidence 
+due to how closely the points are clustered on the y=x line. 
 
-##### Distribution b
-The quantiles appear to hug the y=x line, suggesting that the parameters for 
-this distribution are correct.
+##### Distributions a and c
+The quantile-quantile plot for distribution a and c in @fig-gpd-qqplots are unclear with regards to whether
+they follow the specified distributions. It appears as though they share a dislocation in
+the smaller values, but I am not very confident in saying that the parameters are incorrect,
+given the lack of data in both a) and c). 
 
-##### Distribution c
+##### Distributions d and e
+The Quantile-Quantile plots in @fig-gpd-qqplots suggest the provided parameters for these two
+distributions are incorrect with a high degree of confidence with how far away the majoriy
+of points are from the y=x line. 
 
 
 ### Question 4
@@ -297,6 +302,42 @@ Does your answer contain:
 
 
 <!-- YOUR INVESTIGATION GOES HERE --> 
+I have chosen to include the following plots. Firstly, I wanted to just view the raw data in a histogram to see visually,
+what proportion of the samples exceeded 75 cumecs, and what the shape of this data was.
+
+```{r}
+#| echo: false
+#| label: fig-river-flow-hist
+#| fig-cap: "Histogram of Riverflow Data Exceeding 75 Cumecs"
+riverflow <- read.csv("riverflow_2015_2024.csv")
+extreme_flow <- riverflow[riverflow$flow > 75,]$flow
+hist(extreme_flow, breaks=40, xlab="Riverflow (cumecs)")
+```
+Using the histogram function in base R [@base-r], @fig-river-flow-hist illustrates roughly what one would expect to see from a Generalized Pareto Distribution, suggesting that the researcher is on the right track by modelling the river flow
+with levels > 75 cumecs as a Generalized Pareto Distribution. Thus, following the logic from problem 3, we can plot quantiles
+from a theoretical distribution from the suggested parameters and see how close the relationship is.
+
+```{r}
+#| echo: false
+#| label: fig-riverflow-qq
+  theo_qs <- qgpd(
+    p=ppoints(length(extreme_flow)),
+    u=0,
+    sigma=29.7,
+    xi=0.62
+  )
+  qqplot(
+    sort(theo_qs), sort(extreme_flow),
+    main = paste("Q-Q Plot for Extreme River Flow"),
+    xlab = "Theoretical quantiles",
+    ylab = "Empirical quantiles",
+  )
+  abline(0, 1, col = "red")
+```
+Immediate inspection of @fig-riverflow-qq suggests that the parameters given are not correctly
+specifying the true distribution of riverflow data above 75 cumecs. The plot of
+the empirical river flow data deviates from theoretical data generated using the given
+parameters significantly.
 
 
 

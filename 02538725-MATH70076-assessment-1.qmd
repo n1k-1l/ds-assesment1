@@ -168,7 +168,7 @@ qgpd <- function(p, u, sigma, xi) {
     print("qgpd expects numeric values for all its inputs!")
     return(NaN)
   }
-  if (p < 0 || p > 1) {
+  if (any(p < 0 | p > 1)){ # Note: given the context of this function I assumed it needed to be vectorized
     print("Probability passed to qgpd must be in [0,1]!")
     return(NaN)
   }
@@ -219,7 +219,56 @@ Does your solution contain:
 
 :::
 
-<!-- YOUR ANSWER GOES HERE --> 
+```{r}
+#| echo: false
+#| fig-cap: "Q-Q Plots for the 6 Sample GPD Distribution Data"
+#| label: fig-gpd-qqplots
+library(dplyr)
+library(ggplot2)
+theo_params <- read.csv('gpd_parameters.csv')
+sample_data <- read.csv('gpd_samples.csv')
+# Uses uniform[0,1] realizations and qgpd to generate theoretical GPD data
+# taking advantage of the Partial Integral Transform
+generate_theoretical <- function(label){
+  label_params <- theo_params[theo_params$id == label,]
+  theo_qs <- qgpd(
+    p=ppoints(label_params$size),
+    u=label_params$u,
+    sigma=label_params$sigma,
+    xi=label_params$xi
+  )
+  sort(theo_qs)
+}
+
+build_qq_plot <- function(label) { # using lapply to map 
+  emp_data <- sort(sample_data$value[sample_data$set_id == label])
+  theo_data <- generate_theoretical(label)
+  qqplot(
+    theo_data, emp_data,
+    main = paste("Q-Q Plot for Distribution -", label),
+    xlab = "Theoretical quantiles",
+    ylab = "Empirical quantiles",
+  )
+  abline(0, 1, col = "red")
+}
+
+# Build one long data frame with empirical + theoretical quantiles
+ids = unique(theo_params$id)
+par(mfrow = c(2, 3))
+for (id in ids){
+  build_qq_plot(id)
+}
+```
+##### Distribution a
+The quantile-quantile plot for distribution a shows a clear deviation from the 
+y=x line, with the data initially being under, then over the line. This suggests
+the parameters that generated the data deviate from the listed _sim parameters.
+
+##### Distribution b
+The quantiles appear to hug the y=x line, suggesting that the parameters for 
+this distribution are correct.
+
+##### Distribution c
 
 
 ### Question 4
@@ -266,6 +315,7 @@ _End of Assessment._
 #| echo: true
 #| eval: false
 #| code-fold: true
+
 ```
 
 
